@@ -120,7 +120,6 @@
             const [menu, setMenu] = useState(menuData);
             const [currentTime, setCurrentTime] = useState(new Date());
             
-            // Determine initial view based on what has content
             const initialEntrees = menuData.categories.find(c => c.name === "Entrees");
             const hasInitialEntrees = initialEntrees && initialEntrees.items && initialEntrees.items.length > 0;
             const [currentView, setCurrentView] = useState(hasInitialEntrees ? 0 : 1);
@@ -132,15 +131,13 @@
             const refreshInterval = parseInt(urlParams.get('refresh')) || 0;
             const cycleTime = parseInt(urlParams.get('cycle')) || 180;
             const descLines = parseInt(urlParams.get('descLines')) || 2;
-            const taglineParam = urlParams.get('tagline'); // URL parameter for tagline // Default 2 lines
-            
-            // Get appropriate line clamp class
+            const taglineParam = urlParams.get('tagline');
+
             const getDescClassName = () => {
-                if (descLines === 1) return 'text-xs text-slate-600 leading-tight line-clamp-1';
-                if (descLines === 3) return 'text-xs text-slate-600 leading-tight line-clamp-3';
-                return 'text-xs text-slate-600 leading-tight line-clamp-2'; // default
+                if (descLines === 1) return 'line-clamp-1';
+                if (descLines === 3) return 'line-clamp-3';
+                return 'line-clamp-2';
             };
-            const descClassName = getDescClassName();
 
             useEffect(() => {
                 const timer = setInterval(() => {
@@ -150,22 +147,23 @@
             }, []);
 
             useEffect(() => {
+                const entreesCategory = menu.categories.find(c => c.name === "Entrees");
+                const otherCategories = menu.categories.filter(c => c.name !== "Entrees");
+                
                 const cycleTimer = setInterval(() => {
                     setCurrentView(prev => {
-                        // Only cycle if both views have content
                         const hasEntreesItems = entreesCategory && entreesCategory.items && entreesCategory.items.length > 0;
                         const hasOtherItems = otherCategories.some(cat => cat.items && cat.items.length > 0);
                         
                         if (hasEntreesItems && hasOtherItems) {
                             return prev === 0 ? 1 : 0;
                         }
-                        // If only one view has content, stay on current view
                         return prev;
                     });
                 }, cycleTime * 1000);
                 
                 return () => clearInterval(cycleTimer);
-            }, [cycleTime, entreesCategory, otherCategories]);
+            }, [cycleTime, menu]);
 
             useEffect(() => {
                 if (inlineData) {
@@ -210,20 +208,16 @@
             const entreesCategory = menu.categories.find(c => c.name === "Entrees");
             const otherCategories = menu.categories.filter(c => c.name !== "Entrees");
 
-            // Filter out empty categories
             const nonEmptyOtherCategories = otherCategories.filter(cat => cat.items && cat.items.length > 0);
             const hasEntrees = entreesCategory && entreesCategory.items && entreesCategory.items.length > 0;
 
-            // Calculate grid columns based on number of non-empty categories
             const otherCategoriesCount = nonEmptyOtherCategories.length;
-            const gridCols = Math.max(1, Math.min(4, otherCategoriesCount)); // Between 1-4 columns
+            const gridCols = Math.max(1, Math.min(4, otherCategoriesCount));
 
-            // Calculate optimal grid columns for entrees based on item count
             const entreesCount = entreesCategory ? entreesCategory.items.length : 0;
-            const entreesCols = Math.max(4, Math.ceil(Math.sqrt(entreesCount * 0.6))); // Prefer vertical layout
+            const entreesCols = Math.max(4, Math.ceil(Math.sqrt(entreesCount * 0.6)));
             const entreesRows = Math.ceil(entreesCount / entreesCols);
             
-            // Determine size class based on item count for dynamic scaling
             const getItemSizeClass = (itemCount) => {
                 if (itemCount <= 5) return 'xlarge';
                 if (itemCount <= 15) return 'large';
@@ -231,49 +225,24 @@
                 return 'small';
             };
             
-            const entreesSizeClass = getItemSizeClass(entreesCount);
-            
-            // Get sizing styles based on class - more aggressive scaling
             const getSizeStyles = (sizeClass) => {
                 switch(sizeClass) {
                     case 'xlarge':
-                        return {
-                            imageSize: 'w-32 h-32',
-                            nameSize: 'text-lg',
-                            descSize: 'text-base',
-                            priceSize: 'text-base',
-                            gap: 'gap-4'
-                        };
+                        return { imageSize: 'w-32 h-32', nameSize: 'text-lg', descSize: 'text-base', priceSize: 'text-base', gap: 'gap-4' };
                     case 'large':
-                        return {
-                            imageSize: 'w-24 h-24',
-                            nameSize: 'text-base',
-                            descSize: 'text-sm',
-                            priceSize: 'text-sm',
-                            gap: 'gap-3'
-                        };
+                        return { imageSize: 'w-24 h-24', nameSize: 'text-base', descSize: 'text-sm', priceSize: 'text-sm', gap: 'gap-3' };
                     case 'medium':
-                        return {
-                            imageSize: 'w-16 h-16',
-                            nameSize: 'text-sm',
-                            descSize: 'text-xs',
-                            priceSize: 'text-xs',
-                            gap: 'gap-2'
-                        };
-                    default: // small
-                        return {
-                            imageSize: 'w-12 h-12',
-                            nameSize: 'text-xs',
-                            descSize: 'text-xs',
-                            priceSize: 'text-xs',
-                            gap: 'gap-1.5'
-                        };
+                        return { imageSize: 'w-16 h-16', nameSize: 'text-sm', descSize: 'text-xs', priceSize: 'text-xs', gap: 'gap-2' };
+                    default:
+                        return { imageSize: 'w-12 h-12', nameSize: 'text-xs', descSize: 'text-xs', priceSize: 'text-xs', gap: 'gap-1.5' };
                 }
             };
             
+            const entreesSizeClass = getItemSizeClass(entreesCount);
             const entreesStyles = getSizeStyles(entreesSizeClass);
+            const clampClass = getDescClassName();
+            const displayTagline = taglineParam || menu.restaurant.tagline || "Fine Dining Experience";
 
-            // Determine which view to show
             const shouldShowView0 = hasEntrees && currentView === 0;
             const shouldShowView1 = (otherCategoriesCount > 0 && currentView === 1) || (!hasEntrees && currentView === 0);
 
@@ -326,9 +295,7 @@
                                                             />
                                                             {item.soldOut && (
                                                                 <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center rounded">
-                                                                    <span className="bg-red-600 text-white px-1 py-0.5 rounded text-xs font-bold">
-                                                                        OUT
-                                                                    </span>
+                                                                    <span className="bg-red-600 text-white px-1 py-0.5 rounded text-xs font-bold">OUT</span>
                                                                 </div>
                                                             )}
                                                         </div>
@@ -339,14 +306,12 @@
                                                 )}
                                                 <div className="flex-1 min-w-0">
                                                     <h3 className={`${entreesStyles.nameSize} font-bold text-slate-800 leading-tight`}>{item.name}</h3>
-                                                    <p className={`${entreesStyles.descSize} text-slate-600 leading-tight ${descClassName.split(' ').slice(-1)[0]}`}>{item.description}</p>
+                                                    <p className={`${entreesStyles.descSize} text-slate-600 leading-tight ${clampClass}`}>{item.description}</p>
                                                     {!showImages && (
                                                         <span className={`${entreesStyles.priceSize} font-bold text-gray-900`}>${item.price.toFixed(2)}</span>
                                                     )}
                                                     {!showImages && item.soldOut && (
-                                                        <span className="inline-block bg-red-600 text-white px-1.5 py-0.5 rounded text-xs font-bold ml-1">
-                                                            OUT
-                                                        </span>
+                                                        <span className="inline-block bg-red-600 text-white px-1.5 py-0.5 rounded text-xs font-bold ml-1">OUT</span>
                                                     )}
                                                 </div>
                                             </div>
@@ -361,52 +326,48 @@
                                     const categoryStyles = getSizeStyles(categorySizeClass);
                                     
                                     return (
-                                    <div key={category.id} className="bg-white rounded-lg border-2 border-gray-300 overflow-hidden flex flex-col">
-                                        <div className="bg-gray-900 px-3 py-1.5 border-b-2 border-gray-900 flex-shrink-0">
-                                            <h2 className="text-lg font-bold text-white">{category.name}</h2>
-                                        </div>
-                                        <div className="flex-1 overflow-hidden p-2">
-                                            <div className="h-full grid gap-2" style={{gridTemplateRows: `repeat(${category.items.length}, 1fr)`}}>
-                                                {category.items.map((item) => (
-                                                    <div key={item.id} className={`flex ${categoryStyles.gap} ${item.soldOut ? 'opacity-60' : ''}`}>
-                                                        {showImages && (
-                                                            <div className="flex-shrink-0">
-                                                                <div className={`relative ${categoryStyles.imageSize} mb-0.5`}>
-                                                                    <img 
-                                                                        src={item.image} 
-                                                                        alt={item.name}
-                                                                        className="w-full h-full object-cover rounded"
-                                                                    />
-                                                                    {item.soldOut && (
-                                                                        <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center rounded">
-                                                                            <span className="bg-red-600 text-white px-1 py-0.5 rounded text-xs font-bold">
-                                                                                OUT
-                                                                            </span>
-                                                                        </div>
-                                                                    )}
+                                        <div key={category.id} className="bg-white rounded-lg border-2 border-gray-300 overflow-hidden flex flex-col">
+                                            <div className="bg-gray-900 px-3 py-1.5 border-b-2 border-gray-900 flex-shrink-0">
+                                                <h2 className="text-lg font-bold text-white">{category.name}</h2>
+                                            </div>
+                                            <div className="flex-1 overflow-hidden p-2">
+                                                <div className="h-full grid gap-2" style={{gridTemplateRows: `repeat(${category.items.length}, 1fr)`}}>
+                                                    {category.items.map((item) => (
+                                                        <div key={item.id} className={`flex ${categoryStyles.gap} ${item.soldOut ? 'opacity-60' : ''}`}>
+                                                            {showImages && (
+                                                                <div className="flex-shrink-0">
+                                                                    <div className={`relative ${categoryStyles.imageSize} mb-0.5`}>
+                                                                        <img 
+                                                                            src={item.image} 
+                                                                            alt={item.name}
+                                                                            className="w-full h-full object-cover rounded"
+                                                                        />
+                                                                        {item.soldOut && (
+                                                                            <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center rounded">
+                                                                                <span className="bg-red-600 text-white px-1 py-0.5 rounded text-xs font-bold">OUT</span>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                    <div className="text-center">
+                                                                        <span className={`${categoryStyles.priceSize} font-bold text-gray-900`}>${item.price.toFixed(2)}</span>
+                                                                    </div>
                                                                 </div>
-                                                                <div className="text-center">
+                                                            )}
+                                                            <div className="flex-1 min-w-0">
+                                                                <h3 className={`${categoryStyles.nameSize} font-bold text-slate-800 leading-tight`}>{item.name}</h3>
+                                                                <p className={`${categoryStyles.descSize} text-slate-600 leading-tight ${clampClass}`}>{item.description}</p>
+                                                                {!showImages && (
                                                                     <span className={`${categoryStyles.priceSize} font-bold text-gray-900`}>${item.price.toFixed(2)}</span>
-                                                                </div>
+                                                                )}
+                                                                {!showImages && item.soldOut && (
+                                                                    <span className="inline-block bg-red-600 text-white px-1.5 py-0.5 rounded text-xs font-bold ml-1">OUT</span>
+                                                                )}
                                                             </div>
-                                                        )}
-                                                        <div className="flex-1 min-w-0">
-                                                            <h3 className={`${categoryStyles.nameSize} font-bold text-slate-800 leading-tight`}>{item.name}</h3>
-                                                            <p className={`${categoryStyles.descSize} text-slate-600 leading-tight ${descClassName.split(' ').slice(-1)[0]}`}>{item.description}</p>
-                                                            {!showImages && (
-                                                                <span className={`${categoryStyles.priceSize} font-bold text-gray-900`}>${item.price.toFixed(2)}</span>
-                                                            )}
-                                                            {!showImages && item.soldOut && (
-                                                                <span className="inline-block bg-red-600 text-white px-1.5 py-0.5 rounded text-xs font-bold ml-1">
-                                                                    OUT
-                                                                </span>
-                                                            )}
                                                         </div>
-                                                    </div>
-                                                ))}
+                                                    ))}
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
                                     );
                                 })}
                             </div>
