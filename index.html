@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Menu Display</title>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .line-clamp-1 {
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .line-clamp-3 {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const menuData = {
+            restaurant: {
+                name: "Bella Vista",
+                logo: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=200&h=200&fit=crop"
+            },
+            categories: [
+                {
+                    id: 1,
+                    name: "Appetizers",
+                    items: Array.from({length: 10}, (_, i) => ({
+                        id: 100 + i,
+                        name: `Appetizer ${i + 1}`,
+                        description: "Delicious starter dish",
+                        price: 8.99 + i,
+                        image: "https://images.unsplash.com/photo-1572695157366-5e585ab2b69f?w=400&h=300&fit=crop",
+                        soldOut: i === 3
+                    }))
+                },
+                {
+                    id: 2,
+                    name: "Entrees",
+                    items: Array.from({length: 60}, (_, i) => ({
+                        id: 200 + i,
+                        name: `Entree ${i + 1}`,
+                        description: "Main course specialty",
+                        price: 15.99 + i * 0.5,
+                        image: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400&h=300&fit=crop",
+                        soldOut: i === 15 || i === 30
+                    }))
+                },
+                {
+                    id: 3,
+                    name: "Sides",
+                    items: Array.from({length: 10}, (_, i) => ({
+                        id: 300 + i,
+                        name: `Side ${i + 1}`,
+                        description: "Perfect accompaniment",
+                        price: 4.99 + i * 0.5,
+                        image: "https://images.unsplash.com/photo-1608897013039-887f21d8c804?w=400&h=300&fit=crop",
+                        soldOut: i === 7
+                    }))
+                },
+                {
+                    id: 4,
+                    name: "Drinks",
+                    items: Array.from({length: 15}, (_, i) => ({
+                        id: 400 + i,
+                        name: `Drink ${i + 1}`,
+                        description: "Refreshing beverage",
+                        price: 3.99 + i * 0.25,
+                        image: "https://images.unsplash.com/photo-1437418747212-8d9709afab22?w=400&h=300&fit=crop",
+                        soldOut: i === 10
+                    }))
+                },
+                {
+                    id: 5,
+                    name: "Desserts",
+                    items: Array.from({length: 5}, (_, i) => ({
+                        id: 500 + i,
+                        name: `Dessert ${i + 1}`,
+                        description: "Sweet ending",
+                        price: 7.99 + i,
+                        image: "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=400&h=300&fit=crop",
+                        soldOut: false
+                    }))
+                }
+            ]
+        };
+
+        function RestaurantMenu() {
+            const [menu, setMenu] = useState(menuData);
+            const [currentTime, setCurrentTime] = useState(new Date());
+            
+            // Determine initial view based on what has content
+            const initialEntrees = menuData.categories.find(c => c.name === "Entrees");
+            const hasInitialEntrees = initialEntrees && initialEntrees.items && initialEntrees.items.length > 0;
+            const [currentView, setCurrentView] = useState(hasInitialEntrees ? 0 : 1);
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const showImages = urlParams.get('images') !== 'false';
+            const jsonFile = urlParams.get('json');
+            const inlineData = urlParams.get('data');
+            const refreshInterval = parseInt(urlParams.get('refresh')) || 0;
+            const cycleTime = parseInt(urlParams.get('cycle')) || 180;
+            const descLines = parseInt(urlParams.get('descLines')) || 2; // Default 2 lines
+            
+            // Get appropriate line clamp class
+            const getDescClassName = () => {
+                if (descLines === 1) return 'text-xs text-slate-600 leading-tight line-clamp-1';
+                if (descLines === 3) return 'text-xs text-slate-600 leading-tight line-clamp-3';
+                return 'text-xs text-slate-600 leading-tight line-clamp-2'; // default
+            };
+            const descClassName = getDescClassName();
+
+            useEffect(() => {
+                const timer = setInterval(() => {
+                    setCurrentTime(new Date());
+                }, 60000);
+                return () => clearInterval(timer);
+            }, []);
+
+            useEffect(() => {
+                const cycleTimer = setInterval(() => {
+                    setCurrentView(prev => {
+                        // Only cycle if both views have content
+                        const hasEntreesItems = entreesCategory && entreesCategory.items && entreesCategory.items.length > 0;
+                        const hasOtherItems = otherCategories.some(cat => cat.items && cat.items.length > 0);
+                        
+                        if (hasEntreesItems && hasOtherItems) {
+                            return prev === 0 ? 1 : 0;
+                        }
+                        // If only one view has content, stay on current view
+                        return prev;
+                    });
+                }, cycleTime * 1000);
+                
+                return () => clearInterval(cycleTimer);
+            }, [cycleTime, entreesCategory, otherCategories]);
+
+            useEffect(() => {
+                if (inlineData) {
+                    try {
+                        const decodedData = atob(inlineData);
+                        const parsedData = JSON.parse(decodedData);
+                        setMenu(parsedData);
+                    } catch (err) {
+                        console.log('Error parsing inline data:', err);
+                    }
+                }
+            }, [inlineData]);
+
+            useEffect(() => {
+                if (jsonFile && !inlineData) {
+                    const fetchMenu = () => {
+                        fetch(jsonFile)
+                            .then(res => res.json())
+                            .then(data => setMenu(data))
+                            .catch(err => console.log('Error loading JSON:', err));
+                    };
+                    
+                    fetchMenu();
+                    
+                    if (refreshInterval > 0) {
+                        const fetchTimer = setInterval(fetchMenu, refreshInterval * 1000);
+                        return () => clearInterval(fetchTimer);
+                    }
+                }
+            }, [jsonFile, refreshInterval, inlineData]);
+
+            useEffect(() => {
+                if (refreshInterval > 0 && !jsonFile && !inlineData) {
+                    const reloadTimer = setInterval(() => {
+                        window.location.reload();
+                    }, refreshInterval * 1000);
+                    
+                    return () => clearInterval(reloadTimer);
+                }
+            }, [refreshInterval, jsonFile, inlineData]);
+
+            const entreesCategory = menu.categories.find(c => c.name === "Entrees");
+            const otherCategories = menu.categories.filter(c => c.name !== "Entrees");
+
+            // Filter out empty categories
+            const nonEmptyOtherCategories = otherCategories.filter(cat => cat.items && cat.items.length > 0);
+            const hasEntrees = entreesCategory && entreesCategory.items && entreesCategory.items.length > 0;
+
+            // Calculate grid columns based on number of non-empty categories
+            const otherCategoriesCount = nonEmptyOtherCategories.length;
+            const gridCols = Math.max(1, Math.min(4, otherCategoriesCount)); // Between 1-4 columns
+
+            // Calculate optimal grid columns for entrees based on item count
+            const entreesCount = entreesCategory ? entreesCategory.items.length : 0;
+            const entreesCols = Math.max(4, Math.ceil(Math.sqrt(entreesCount * 0.6))); // Prefer vertical layout
+            const entreesRows = Math.ceil(entreesCount / entreesCols);
+
+            // Determine which view to show
+            const shouldShowView0 = hasEntrees && currentView === 0;
+            const shouldShowView1 = (otherCategoriesCount > 0 && currentView === 1) || (!hasEntrees && currentView === 0);
+
+            return (
+                <div className="h-screen bg-white text-slate-800 overflow-hidden flex flex-col">
+                    <div className="bg-gray-900 border-b-2 border-gray-900 flex-shrink-0">
+                        <div className="max-w-full mx-auto px-6 py-2 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <img 
+                                    src={menu.restaurant.logo} 
+                                    alt={menu.restaurant.name}
+                                    className="w-10 h-10 rounded-full object-cover border-2 border-white"
+                                />
+                                <div>
+                                    <h1 className="text-xl font-bold text-white">{menu.restaurant.name}</h1>
+                                    <p className="text-gray-300 text-xs">Fine Dining Experience</p>
+                                </div>
+                            </div>
+                            <div className="text-right">
+                                <div className="text-base font-semibold text-white">
+                                    {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                                </div>
+                                <div className="text-xs text-gray-300">
+                                    {currentTime.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex-1 overflow-hidden p-4">
+                        {shouldShowView0 ? (
+                            <div className="h-full bg-white rounded-lg border-2 border-gray-300 overflow-hidden flex flex-col fade-in">
+                                <div className="bg-gray-900 px-4 py-2 border-b-2 border-gray-900 flex-shrink-0">
+                                    <h2 className="text-2xl font-bold text-white">Entrees</h2>
+                                </div>
+                                <div className="flex-1 overflow-hidden p-3">
+                                    <div className="h-full grid gap-2.5" style={{
+                                        gridTemplateColumns: `repeat(${entreesCols}, 1fr)`,
+                                        gridTemplateRows: `repeat(${entreesRows}, 1fr)`
+                                    }}>
+                                        {entreesCategory && entreesCategory.items.map((item) => (
+                                            <div key={item.id} className={`flex gap-1.5 ${item.soldOut ? 'opacity-60' : ''}`}>
+                                                {showImages && (
+                                                    <div className="flex-shrink-0">
+                                                        <div className="relative w-12 h-12 mb-0.5">
+                                                            <img 
+                                                                src={item.image} 
+                                                                alt={item.name}
+                                                                className="w-full h-full object-cover rounded"
+                                                            />
+                                                            {item.soldOut && (
+                                                                <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center rounded">
+                                                                    <span className="bg-red-600 text-white px-1 py-0.5 rounded text-xs font-bold">
+                                                                        OUT
+                                                                    </span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <div className="text-center">
+                                                            <span className="text-xs font-bold text-gray-900">${item.price.toFixed(2)}</span>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                <div className="flex-1 min-w-0">
+                                                    <h3 className="text-xs font-bold text-slate-800 leading-tight">{item.name}</h3>
+                                                    <p className={descClassName}>{item.description}</p>
+                                                    {!showImages && (
+                                                        <span className="text-xs font-bold text-gray-900">${item.price.toFixed(2)}</span>
+                                                    )}
+                                                    {!showImages && item.soldOut && (
+                                                        <span className="inline-block bg-red-600 text-white px-1.5 py-0.5 rounded text-xs font-bold ml-1">
+                                                            OUT
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        ) : shouldShowView1 ? (
+                            <div className="h-full grid gap-3 fade-in" style={{gridTemplateColumns: `repeat(${gridCols}, 1fr)`}}>
+                                {nonEmptyOtherCategories.map((category) => (
+                                    <div key={category.id} className="bg-white rounded-lg border-2 border-gray-300 overflow-hidden flex flex-col">
+                                        <div className="bg-gray-900 px-3 py-1.5 border-b-2 border-gray-900 flex-shrink-0">
+                                            <h2 className="text-lg font-bold text-white">{category.name}</h2>
+                                        </div>
+                                        <div className="flex-1 overflow-hidden p-2">
+                                            <div className="h-full grid gap-2" style={{gridTemplateRows: `repeat(${category.items.length}, 1fr)`}}>
+                                                {category.items.map((item) => (
+                                                    <div key={item.id} className={`flex gap-1.5 ${item.soldOut ? 'opacity-60' : ''}`}>
+                                                        {showImages && (
+                                                            <div className="flex-shrink-0">
+                                                                <div className="relative w-12 h-12 mb-0.5">
+                                                                    <img 
+                                                                        src={item.image} 
+                                                                        alt={item.name}
+                                                                        className="w-full h-full object-cover rounded"
+                                                                    />
+                                                                    {item.soldOut && (
+                                                                        <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center rounded">
+                                                                            <span className="bg-red-600 text-white px-1 py-0.5 rounded text-xs font-bold">
+                                                                                OUT
+                                                                            </span>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                                <div className="text-center">
+                                                                    <span className="text-xs font-bold text-gray-900">${item.price.toFixed(2)}</span>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                        <div className="flex-1 min-w-0">
+                                                            <h3 className="text-xs font-bold text-slate-800 leading-tight">{item.name}</h3>
+                                                            <p className={descClassName}>{item.description}</p>
+                                                            {!showImages && (
+                                                                <span className="text-xs font-bold text-gray-900">${item.price.toFixed(2)}</span>
+                                                            )}
+                                                            {!showImages && item.soldOut && (
+                                                                <span className="inline-block bg-red-600 text-white px-1.5 py-0.5 rounded text-xs font-bold ml-1">
+                                                                    OUT
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="h-full flex items-center justify-center bg-white rounded-lg border-2 border-gray-300 fade-in">
+                                <div className="text-center">
+                                    <h2 className="text-2xl font-bold text-gray-800 mb-2">Menu Coming Soon</h2>
+                                    <p className="text-gray-600">Please check back later for our menu items.</p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="bg-gray-900 border-t-2 border-gray-900 flex-shrink-0">
+                        <div className="max-w-full mx-auto px-6 py-1.5 text-center text-gray-300 text-xs">
+                            Prices and availability subject to change. Please ask your server for today's specials.
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<RestaurantMenu />, document.getElementById('root'));
+    </script>
+</body>
+</html>
