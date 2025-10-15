@@ -220,6 +220,47 @@
             const entreesCount = entreesCategory ? entreesCategory.items.length : 0;
             const entreesCols = Math.max(4, Math.ceil(Math.sqrt(entreesCount * 0.6))); // Prefer vertical layout
             const entreesRows = Math.ceil(entreesCount / entreesCols);
+            
+            // Determine size class based on item count for dynamic scaling
+            const getItemSizeClass = (itemCount) => {
+                if (itemCount <= 10) return 'large';
+                if (itemCount <= 30) return 'medium';
+                return 'small';
+            };
+            
+            const entreesSizeClass = getItemSizeClass(entreesCount);
+            
+            // Get sizing styles based on class
+            const getSizeStyles = (sizeClass) => {
+                switch(sizeClass) {
+                    case 'large':
+                        return {
+                            imageSize: 'w-20 h-20',
+                            nameSize: 'text-sm',
+                            descSize: 'text-sm',
+                            priceSize: 'text-sm',
+                            gap: 'gap-3'
+                        };
+                    case 'medium':
+                        return {
+                            imageSize: 'w-16 h-16',
+                            nameSize: 'text-xs',
+                            descSize: 'text-xs',
+                            priceSize: 'text-xs',
+                            gap: 'gap-2'
+                        };
+                    default: // small
+                        return {
+                            imageSize: 'w-12 h-12',
+                            nameSize: 'text-xs',
+                            descSize: 'text-xs',
+                            priceSize: 'text-xs',
+                            gap: 'gap-1.5'
+                        };
+                }
+            };
+            
+            const entreesStyles = getSizeStyles(entreesSizeClass);
 
             // Determine which view to show
             const shouldShowView0 = hasEntrees && currentView === 0;
@@ -263,10 +304,10 @@
                                         gridTemplateRows: `repeat(${entreesRows}, 1fr)`
                                     }}>
                                         {entreesCategory && entreesCategory.items.map((item) => (
-                                            <div key={item.id} className={`flex gap-1.5 ${item.soldOut ? 'opacity-60' : ''}`}>
+                                            <div key={item.id} className={`flex ${entreesStyles.gap} ${item.soldOut ? 'opacity-60' : ''}`}>
                                                 {showImages && (
                                                     <div className="flex-shrink-0">
-                                                        <div className="relative w-12 h-12 mb-0.5">
+                                                        <div className={`relative ${entreesStyles.imageSize} mb-0.5`}>
                                                             <img 
                                                                 src={item.image} 
                                                                 alt={item.name}
@@ -281,15 +322,15 @@
                                                             )}
                                                         </div>
                                                         <div className="text-center">
-                                                            <span className="text-xs font-bold text-gray-900">${item.price.toFixed(2)}</span>
+                                                            <span className={`${entreesStyles.priceSize} font-bold text-gray-900`}>${item.price.toFixed(2)}</span>
                                                         </div>
                                                     </div>
                                                 )}
                                                 <div className="flex-1 min-w-0">
-                                                    <h3 className="text-xs font-bold text-slate-800 leading-tight">{item.name}</h3>
-                                                    <p className={descClassName}>{item.description}</p>
+                                                    <h3 className={`${entreesStyles.nameSize} font-bold text-slate-800 leading-tight`}>{item.name}</h3>
+                                                    <p className={`${entreesStyles.descSize} text-slate-600 leading-tight ${descClassName.split(' ').slice(-1)[0]}`}>{item.description}</p>
                                                     {!showImages && (
-                                                        <span className="text-xs font-bold text-gray-900">${item.price.toFixed(2)}</span>
+                                                        <span className={`${entreesStyles.priceSize} font-bold text-gray-900`}>${item.price.toFixed(2)}</span>
                                                     )}
                                                     {!showImages && item.soldOut && (
                                                         <span className="inline-block bg-red-600 text-white px-1.5 py-0.5 rounded text-xs font-bold ml-1">
