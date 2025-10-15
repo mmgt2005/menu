@@ -49,7 +49,8 @@
         const menuData = {
             restaurant: {
                 name: "Bella Vista",
-                logo: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=200&h=200&fit=crop"
+                logo: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=200&h=200&fit=crop",
+                tagline: "Fine Dining Experience"
             },
             categories: [
                 {
@@ -130,7 +131,8 @@
             const inlineData = urlParams.get('data');
             const refreshInterval = parseInt(urlParams.get('refresh')) || 0;
             const cycleTime = parseInt(urlParams.get('cycle')) || 180;
-            const descLines = parseInt(urlParams.get('descLines')) || 2; // Default 2 lines
+            const descLines = parseInt(urlParams.get('descLines')) || 2;
+            const taglineParam = urlParams.get('tagline'); // URL parameter for tagline // Default 2 lines
             
             // Get appropriate line clamp class
             const getDescClassName = () => {
@@ -223,20 +225,29 @@
             
             // Determine size class based on item count for dynamic scaling
             const getItemSizeClass = (itemCount) => {
-                if (itemCount <= 10) return 'large';
-                if (itemCount <= 30) return 'medium';
+                if (itemCount <= 5) return 'xlarge';
+                if (itemCount <= 15) return 'large';
+                if (itemCount <= 40) return 'medium';
                 return 'small';
             };
             
             const entreesSizeClass = getItemSizeClass(entreesCount);
             
-            // Get sizing styles based on class
+            // Get sizing styles based on class - more aggressive scaling
             const getSizeStyles = (sizeClass) => {
                 switch(sizeClass) {
+                    case 'xlarge':
+                        return {
+                            imageSize: 'w-32 h-32',
+                            nameSize: 'text-lg',
+                            descSize: 'text-base',
+                            priceSize: 'text-base',
+                            gap: 'gap-4'
+                        };
                     case 'large':
                         return {
-                            imageSize: 'w-20 h-20',
-                            nameSize: 'text-sm',
+                            imageSize: 'w-24 h-24',
+                            nameSize: 'text-base',
                             descSize: 'text-sm',
                             priceSize: 'text-sm',
                             gap: 'gap-3'
@@ -244,7 +255,7 @@
                     case 'medium':
                         return {
                             imageSize: 'w-16 h-16',
-                            nameSize: 'text-xs',
+                            nameSize: 'text-sm',
                             descSize: 'text-xs',
                             priceSize: 'text-xs',
                             gap: 'gap-2'
@@ -269,23 +280,23 @@
             return (
                 <div className="h-screen bg-white text-slate-800 overflow-hidden flex flex-col">
                     <div className="bg-gray-900 border-b-2 border-gray-900 flex-shrink-0">
-                        <div className="max-w-full mx-auto px-6 py-2 flex items-center justify-between">
-                            <div className="flex items-center gap-3">
+                        <div className="max-w-full mx-auto px-6 py-3 flex items-center justify-between">
+                            <div className="flex items-center gap-4">
                                 <img 
                                     src={menu.restaurant.logo} 
                                     alt={menu.restaurant.name}
-                                    className="w-10 h-10 rounded-full object-cover border-2 border-white"
+                                    className="w-16 h-16 rounded-full object-cover border-2 border-white"
                                 />
                                 <div>
-                                    <h1 className="text-xl font-bold text-white">{menu.restaurant.name}</h1>
-                                    <p className="text-gray-300 text-xs">Fine Dining Experience</p>
+                                    <h1 className="text-3xl font-bold text-white">{menu.restaurant.name}</h1>
+                                    <p className="text-gray-300 text-sm">{displayTagline}</p>
                                 </div>
                             </div>
                             <div className="text-right">
-                                <div className="text-base font-semibold text-white">
+                                <div className="text-xl font-semibold text-white">
                                     {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                                 </div>
-                                <div className="text-xs text-gray-300">
+                                <div className="text-sm text-gray-300">
                                     {currentTime.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
                                 </div>
                             </div>
@@ -345,7 +356,11 @@
                             </div>
                         ) : shouldShowView1 ? (
                             <div className="h-full grid gap-3 fade-in" style={{gridTemplateColumns: `repeat(${gridCols}, 1fr)`}}>
-                                {nonEmptyOtherCategories.map((category) => (
+                                {nonEmptyOtherCategories.map((category) => {
+                                    const categorySizeClass = getItemSizeClass(category.items.length);
+                                    const categoryStyles = getSizeStyles(categorySizeClass);
+                                    
+                                    return (
                                     <div key={category.id} className="bg-white rounded-lg border-2 border-gray-300 overflow-hidden flex flex-col">
                                         <div className="bg-gray-900 px-3 py-1.5 border-b-2 border-gray-900 flex-shrink-0">
                                             <h2 className="text-lg font-bold text-white">{category.name}</h2>
@@ -353,10 +368,10 @@
                                         <div className="flex-1 overflow-hidden p-2">
                                             <div className="h-full grid gap-2" style={{gridTemplateRows: `repeat(${category.items.length}, 1fr)`}}>
                                                 {category.items.map((item) => (
-                                                    <div key={item.id} className={`flex gap-1.5 ${item.soldOut ? 'opacity-60' : ''}`}>
+                                                    <div key={item.id} className={`flex ${categoryStyles.gap} ${item.soldOut ? 'opacity-60' : ''}`}>
                                                         {showImages && (
                                                             <div className="flex-shrink-0">
-                                                                <div className="relative w-12 h-12 mb-0.5">
+                                                                <div className={`relative ${categoryStyles.imageSize} mb-0.5`}>
                                                                     <img 
                                                                         src={item.image} 
                                                                         alt={item.name}
@@ -371,15 +386,15 @@
                                                                     )}
                                                                 </div>
                                                                 <div className="text-center">
-                                                                    <span className="text-xs font-bold text-gray-900">${item.price.toFixed(2)}</span>
+                                                                    <span className={`${categoryStyles.priceSize} font-bold text-gray-900`}>${item.price.toFixed(2)}</span>
                                                                 </div>
                                                             </div>
                                                         )}
                                                         <div className="flex-1 min-w-0">
-                                                            <h3 className="text-xs font-bold text-slate-800 leading-tight">{item.name}</h3>
-                                                            <p className={descClassName}>{item.description}</p>
+                                                            <h3 className={`${categoryStyles.nameSize} font-bold text-slate-800 leading-tight`}>{item.name}</h3>
+                                                            <p className={`${categoryStyles.descSize} text-slate-600 leading-tight ${descClassName.split(' ').slice(-1)[0]}`}>{item.description}</p>
                                                             {!showImages && (
-                                                                <span className="text-xs font-bold text-gray-900">${item.price.toFixed(2)}</span>
+                                                                <span className={`${categoryStyles.priceSize} font-bold text-gray-900`}>${item.price.toFixed(2)}</span>
                                                             )}
                                                             {!showImages && item.soldOut && (
                                                                 <span className="inline-block bg-red-600 text-white px-1.5 py-0.5 rounded text-xs font-bold ml-1">
@@ -392,7 +407,8 @@
                                             </div>
                                         </div>
                                     </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         ) : (
                             <div className="h-full flex items-center justify-center bg-white rounded-lg border-2 border-gray-300 fade-in">
@@ -405,7 +421,7 @@
                     </div>
 
                     <div className="bg-gray-900 border-t-2 border-gray-900 flex-shrink-0">
-                        <div className="max-w-full mx-auto px-6 py-1.5 text-center text-gray-300 text-xs">
+                        <div className="max-w-full mx-auto px-6 py-2 text-center text-gray-300 text-sm">
                             Prices and availability subject to change. Please ask your server for today's specials.
                         </div>
                     </div>
