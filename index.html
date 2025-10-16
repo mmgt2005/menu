@@ -25,6 +25,16 @@
             font-size: 0.65rem; /* Equivalent to about 10.4px or smaller than 'text-xs' (0.75rem) */
             line-height: 0.85rem;
         }
+        /* Tailwind custom dimensions to support tripling */
+        .w-64 { width: 16rem; } 
+        .h-64 { height: 16rem; }
+        .w-44 { width: 11rem; } 
+        .h-44 { height: 11rem; }
+        .w-32 { width: 8rem; }
+        .h-32 { height: 8rem; }
+        .w-24 { width: 6rem; } 
+        .h-24 { height: 6rem; }
+
         /* Line clamp classes remain unchanged */
         .line-clamp-1 { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
         .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
@@ -51,7 +61,6 @@
                     name: "Appetizers",
                     items: Array.from({length: 10}, (_, i) => ({
                         id: 100 + i,
-                        // Description is now ~130 characters long
                         name: `Appetizer ${i + 1}`,
                         description: "Delicious starter dish, perfect for sharing before the main course. A wonderful way to begin your dining experience. A longer sentence for maximum wrapping.",
                         price: 8.99 + i,
@@ -64,7 +73,6 @@
                     name: "Entrees",
                     items: Array.from({length: 24}, (_, i) => ({ 
                         id: 200 + i,
-                        // Description is now ~130 characters long
                         name: `Entree ${i + 1}`,
                         description: "Our main course specialty, featuring the freshest seasonal ingredients. A culinary delight you won't forget. This is a longer description for maximum density testing.",
                         price: 15.99 + i * 0.5,
@@ -140,7 +148,6 @@
                     )}
                     <div className="flex-1 min-w-0 flex flex-col"> 
                         <h3 className={`${styles.nameSize} font-bold text-slate-800 leading-tight`}>{item.name}</h3>
-                        {/* Use dynamic descSize here */}
                         <p className={`${styles.descSize} text-slate-600 leading-snug ${clampClass}`}>{item.description}</p>
                         {!hasImage && (
                             <div className="flex items-center mt-auto pt-0.5">
@@ -155,7 +162,7 @@
             );
         }
 
-        // --- Scaling Tiers Logic (Updated) ---
+        // --- Scaling Tiers Logic (Updated Image Sizes) ---
 
         function CategoryScreen({ category, showImages, clampClass }) {
             const itemCount = category.items.length;
@@ -170,13 +177,17 @@
             const getSizeStyles = (sizeClass) => {
                 switch(sizeClass) {
                     case 'xlarge': 
-                        return { imageSize: 'w-40 h-40', nameSize: 'text-lg', descSize: 'text-sm', priceSize: 'text-sm', gap: 'gap-3', cols: 2, rows: Math.ceil(itemCount / 2) };
+                        // Tripled image size: w-64 h-64 (from original w-20 h-20)
+                        return { imageSize: 'w-64 h-64', nameSize: 'text-lg', descSize: 'text-sm', priceSize: 'text-sm', gap: 'gap-3', cols: 2, rows: Math.ceil(itemCount / 2) };
                     case 'large': 
-                        return { imageSize: 'w-28 h-28', nameSize: 'text-sm', descSize: 'text-xxs', priceSize: 'text-xs', gap: 'gap-2', cols: 3, rows: Math.ceil(itemCount / 3) };
+                        // Tripled image size: w-44 h-44 (from original w-14 h-14)
+                        return { imageSize: 'w-44 h-44', nameSize: 'text-sm', descSize: 'text-xxs', priceSize: 'text-xs', gap: 'gap-2', cols: 3, rows: Math.ceil(itemCount / 3) };
                     case 'medium': 
-                        return { imageSize: 'w-20 h-20', nameSize: 'text-xs', descSize: 'text-xxs', priceSize: 'text-xs', gap: 'gap-1', cols: 4, rows: Math.ceil(itemCount / 4) };
+                        // Tripled image size: w-32 h-32 (from original w-10 h-10)
+                        return { imageSize: 'w-32 h-32', nameSize: 'text-xs', descSize: 'text-xxs', priceSize: 'text-xs', gap: 'gap-1', cols: 4, rows: Math.ceil(itemCount / 4) };
                     default: 
-                        return { imageSize: 'w-16 h-16', nameSize: 'text-xs', descSize: 'text-xxs', priceSize: 'text-xs', gap: 'gap-0.5', cols: 5, rows: Math.ceil(itemCount / 5) };
+                        // Tripled image size: w-24 h-24 (from original w-8 h-8)
+                        return { imageSize: 'w-24 h-24', nameSize: 'text-xs', descSize: 'text-xxs', priceSize: 'text-xs', gap: 'gap-0.5', cols: 5, rows: Math.ceil(itemCount / 5) };
                 }
             };
             
