@@ -170,16 +170,13 @@
             const getSizeStyles = (sizeClass) => {
                 switch(sizeClass) {
                     case 'xlarge': 
-                        return { imageSize: 'w-20 h-20', nameSize: 'text-lg', descSize: 'text-sm', priceSize: 'text-sm', gap: 'gap-3', cols: 2, rows: Math.ceil(itemCount / 2) };
+                        return { imageSize: 'w-40 h-40', nameSize: 'text-lg', descSize: 'text-sm', priceSize: 'text-sm', gap: 'gap-3', cols: 2, rows: Math.ceil(itemCount / 2) };
                     case 'large': 
-                        // Description reduced from 'text-xs' to 'text-xxs'
-                        return { imageSize: 'w-14 h-14', nameSize: 'text-sm', descSize: 'text-xxs', priceSize: 'text-xs', gap: 'gap-2', cols: 3, rows: Math.ceil(itemCount / 3) };
+                        return { imageSize: 'w-28 h-28', nameSize: 'text-sm', descSize: 'text-xxs', priceSize: 'text-xs', gap: 'gap-2', cols: 3, rows: Math.ceil(itemCount / 3) };
                     case 'medium': 
-                        // Description reduced from 'text-xs' to 'text-xxs'
-                        return { imageSize: 'w-10 h-10', nameSize: 'text-xs', descSize: 'text-xxs', priceSize: 'text-xs', gap: 'gap-1', cols: 4, rows: Math.ceil(itemCount / 4) };
+                        return { imageSize: 'w-20 h-20', nameSize: 'text-xs', descSize: 'text-xxs', priceSize: 'text-xs', gap: 'gap-1', cols: 4, rows: Math.ceil(itemCount / 4) };
                     default: 
-                        // Description reduced from 'text-xs' to 'text-xxs'
-                        return { imageSize: 'w-8 h-8', nameSize: 'text-xs', descSize: 'text-xxs', priceSize: 'text-xs', gap: 'gap-0.5', cols: 5, rows: Math.ceil(itemCount / 5) };
+                        return { imageSize: 'w-16 h-16', nameSize: 'text-xs', descSize: 'text-xxs', priceSize: 'text-xs', gap: 'gap-0.5', cols: 5, rows: Math.ceil(itemCount / 5) };
                 }
             };
             
