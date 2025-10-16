@@ -44,6 +44,12 @@
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
+        .line-clamp-5 {
+            display: -webkit-box;
+            -webkit-line-clamp: 5;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
     </style>
 </head>
 <body>
@@ -143,6 +149,7 @@
                 if (descLines === 1) return 'line-clamp-1';
                 if (descLines === 3) return 'line-clamp-3';
                 if (descLines === 4) return 'line-clamp-4';
+                if (descLines === 5) return 'line-clamp-5';
                 return 'line-clamp-2';
             };
 
