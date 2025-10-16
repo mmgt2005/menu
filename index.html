@@ -344,8 +344,8 @@
                                             <div className="bg-gray-900 px-3 py-1.5 border-b-2 border-gray-900 flex-shrink-0">
                                                 <h2 className="text-lg font-bold text-white">{category.name}</h2>
                                             </div>
-                                            <div className="flex-1 overflow-hidden p-2">
-                                                <div className="h-full grid gap-2" style={{gridTemplateRows: `repeat(${category.items.length}, 1fr)`}}>
+                                            <div className="flex-1 overflow-hidden p-1">
+                                                <div className="h-full grid gap-1" style={{gridTemplateRows: `repeat(${category.items.length}, 1fr)`}}>
                                                     {category.items.map((item) => (
                                                         <div key={item.id} className={`flex ${categoryStyles.gap} ${item.soldOut ? 'opacity-60' : ''}`}>
                                                             {showImages && (
